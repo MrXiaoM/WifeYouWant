@@ -37,8 +37,10 @@ object WifeYouWant : KotlinPlugin(
 
         PluginCommand.register()
         this.globalEventChannel().subscribeAlways<GroupMessageEvent> {
-            val sender = if(it.sender is NormalMember) it.sender as NormalMember else return@subscribeAlways
             val group = it.group
+            if (!PluginConfig.enableGroups.contains(group.id)) return@subscribeAlways
+            val sender = if(it.sender is NormalMember) it.sender as NormalMember else return@subscribeAlways
+
             if (PluginConfig.messagesRandomWife.isNotEmpty() && PluginConfig.keywordsRandomWife.contains(it.message.content)) {
                 val time = nowTime
                 val user = UserData.users.getOrDefault(sender.id, SingleUser())

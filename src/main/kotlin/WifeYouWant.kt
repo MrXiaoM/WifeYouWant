@@ -65,10 +65,10 @@ object WifeYouWant : KotlinPlugin(
         }
     }
 
-    private suspend fun genMemberReplacement(s: String, identity: String, sender: NormalMember, connect: String = "_", atOverride: String? = null) :MutableMap<String, SingleMessage> {
+    private suspend fun genMemberReplacement(s: String, identity: String, sender: NormalMember, connect: String = "_") :MutableMap<String, SingleMessage> {
         val prefix = identity + connect
         val map : MutableMap<String,SingleMessage> = mutableMapOf(
-            (atOverride ?: identity) to At(sender), "${prefix}namecard" to PlainText(sender.nameCardOrNick),
+            "${prefix}at" to At(sender), "${prefix}namecard" to PlainText(sender.nameCardOrNick),
             "${prefix}nick" to PlainText(sender.nick), "${prefix}qq" to PlainText(sender.id.toString())
         )
         val pic = "${prefix}pic"
@@ -93,13 +93,13 @@ object WifeYouWant : KotlinPlugin(
     }
 
     private suspend fun genRandomWifeMessage(s: String, sender: NormalMember, wife: NormalMember) : MessageChain {
-        val map = genMemberReplacement(s, "", sender, "", "you")
+        val map = genMemberReplacement(s, "", sender, "")
         map.putAll(genMemberReplacement(s, "wife", wife))
         return s.replace(map)
     }
 
     private suspend fun genChangeWifeMessage(s : String, sender: NormalMember, oldWife: NormalMember, wife: NormalMember) : MessageChain {
-        val map = genMemberReplacement(s, "", sender, "", "you")
+        val map = genMemberReplacement(s, "", sender, "")
         map.putAll(genMemberReplacement(s, "wife", wife))
         map.putAll(genMemberReplacement(s, "old-wife", oldWife))
         return s.replace(map)
@@ -136,7 +136,7 @@ fun String.replace(replacements: Map<String, SingleMessage>) : MessageChain {
     if (!this.contains("\$")) return PlainText(this).toMessageChain()
     val keys = replacements.keys
     val message = MessageChainBuilder()
-    val s = this.split("\\\$").toMutableList()
+    val s = this.split("\$").toMutableList()
     message.add(s[0])
     s.removeAt(0)
     s.forEach {

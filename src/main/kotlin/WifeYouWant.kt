@@ -2,6 +2,7 @@ package top.mrxiaom
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import net.mamoe.mirai.console.command.CommandManager.INSTANCE.register
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
 import net.mamoe.mirai.contact.NormalMember
@@ -34,6 +35,7 @@ object WifeYouWant : KotlinPlugin(
         PluginConfig.reload()
         UserData.reload()
 
+        PluginCommand.register()
         this.globalEventChannel().subscribeAlways<GroupMessageEvent> {
             val sender = if(it.sender is NormalMember) it.sender as NormalMember else return@subscribeAlways
             val group = it.group

@@ -14,7 +14,7 @@ object PluginConfig : ReadOnlyPluginConfig("config") {
     @ValueDescription("开启后机器人会响应所有群的命令，在黑名单内的群除外")
     val blacklistOnly by value(false)
 
-    @ValueName("enable-groups")
+    @ValueName("blacklist-groups")
     @ValueDescription("在本插件黑名单内的群聊")
     val blacklistGroups by value(listOf<Long>())
 

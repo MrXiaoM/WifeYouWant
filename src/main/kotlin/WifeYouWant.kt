@@ -127,6 +127,11 @@ object WifeYouWant : KotlinPlugin(
             members = members.filter { it.id != sender.id }
         }
 
+        if (PluginConfig.checkNTR) {
+            val existsWives = UserData.users.map { it.value.wifeId }
+            members.filter { !existsWives.contains(it.id) }
+        }
+        
         if (members.isEmpty()) return group.botAsMember
         return members.random()
     }

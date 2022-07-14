@@ -4,9 +4,6 @@ import net.mamoe.mirai.Bot
 import net.mamoe.mirai.console.command.CommandManager.INSTANCE.register
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
-import net.mamoe.mirai.console.util.ContactUtils.getContactOrNull
-import net.mamoe.mirai.console.util.ContactUtils.getFriendOrGroup
-import net.mamoe.mirai.contact.Contact
 import net.mamoe.mirai.contact.NormalMember
 import net.mamoe.mirai.contact.User
 import net.mamoe.mirai.contact.nameCardOrNick
@@ -31,7 +28,6 @@ object WifeYouWant : KotlinPlugin(
 ) {
     private val nowTime: String
         get() = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
-
     override fun onEnable() {
         logger.info { "Plugin loaded" }
         PluginConfig.reload()
@@ -39,8 +35,8 @@ object WifeYouWant : KotlinPlugin(
 
         PluginCommand.register()
         this.globalEventChannel().subscribeAlways<GroupMessageEvent> {
-            val group = it.group
-            if (!PluginConfig.enableGroups.contains(group.id)) return@subscribeAlways
+            if (PluginConfig.blacklistOnly && PluginConfig.blacklistGroups.contains(group.id)) return@subscribeAlways
+            else if (!PluginConfig.enableGroups.contains(group.id)) return@subscribeAlways
             val sender = if (it.sender is NormalMember) it.sender as NormalMember else return@subscribeAlways
 
             if (PluginConfig.messagesRandomWife.isNotEmpty() && PluginConfig.keywordsRandomWife.contains(it.message.content)) {
@@ -48,7 +44,6 @@ object WifeYouWant : KotlinPlugin(
                 val user = UserData.users.getOrDefault(sender.id, SingleUser())
                 if (user.time != time) user.wifeId = random(sender).id
                 val wife: User = group[user.wifeId] ?: bot.getMember(user.wifeId) ?: bot.getStranger(user.wifeId) ?: random(sender)
-
                 user.wifeId = wife.id
                 user.time = time
                 UserData.users[sender.id] = user

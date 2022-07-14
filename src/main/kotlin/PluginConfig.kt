@@ -10,6 +10,14 @@ object PluginConfig : ReadOnlyPluginConfig("config") {
     @ValueDescription("启用本插件的群聊")
     val enableGroups by value(listOf<Long>())
 
+    @ValueName("blacklist-only")
+    @ValueDescription("开启后机器人会响应所有群的命令，在黑名单内的群除外")
+    val blacklistOnly by value(false)
+
+    @ValueName("enable-groups")
+    @ValueDescription("在本插件黑名单内的群聊")
+    val blacklistGroups by value(listOf<Long>())
+
     @ValueName("keywords-random-wife")
     @ValueDescription("「抽老婆」的关键词列表")
     val keywordsRandomWife by value(listOf("抽老婆"))

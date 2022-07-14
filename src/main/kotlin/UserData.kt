@@ -8,4 +8,4 @@ object UserData : AutoSavePluginData("users") {
 }
 
 @kotlinx.serialization.Serializable
-class SingleUser (var wifeId: Long = 0, var time: String = "")
+class SingleUser(var wifeId: Long = 0, var time: String = "")

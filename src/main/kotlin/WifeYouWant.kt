@@ -1,19 +1,21 @@
 package top.mrxiaom
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import net.mamoe.mirai.Bot
 import net.mamoe.mirai.console.command.CommandManager.INSTANCE.register
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
+import net.mamoe.mirai.console.util.ContactUtils.getContactOrNull
+import net.mamoe.mirai.console.util.ContactUtils.getFriendOrGroup
+import net.mamoe.mirai.contact.Contact
 import net.mamoe.mirai.contact.NormalMember
+import net.mamoe.mirai.contact.User
 import net.mamoe.mirai.contact.nameCardOrNick
 import net.mamoe.mirai.data.UserProfile
 import net.mamoe.mirai.event.events.GroupMessageEvent
 import net.mamoe.mirai.event.globalEventChannel
 import net.mamoe.mirai.message.data.*
-import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
 import net.mamoe.mirai.utils.info
-import java.net.URL
+import top.mrxiaom.PrepareUploadImage.Companion.prepareUploadAvatarImage
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -39,13 +41,14 @@ object WifeYouWant : KotlinPlugin(
         this.globalEventChannel().subscribeAlways<GroupMessageEvent> {
             val group = it.group
             if (!PluginConfig.enableGroups.contains(group.id)) return@subscribeAlways
-            val sender = if(it.sender is NormalMember) it.sender as NormalMember else return@subscribeAlways
+            val sender = if (it.sender is NormalMember) it.sender as NormalMember else return@subscribeAlways
 
             if (PluginConfig.messagesRandomWife.isNotEmpty() && PluginConfig.keywordsRandomWife.contains(it.message.content)) {
                 val time = nowTime
                 val user = UserData.users.getOrDefault(sender.id, SingleUser())
                 if (user.time != time) user.wifeId = random(sender).id
-                val wife = group[user.wifeId] ?: random(sender)
+                val wife: User = group[user.wifeId] ?: bot.getMember(user.wifeId) ?: bot.getStranger(user.wifeId) ?: random(sender)
+
                 user.wifeId = wife.id
                 user.time = time
                 UserData.users[sender.id] = user
@@ -54,7 +57,7 @@ object WifeYouWant : KotlinPlugin(
             } else if (PluginConfig.messagesChangeWife.isNotEmpty() && PluginConfig.keywordsChangeWife.contains(it.message.content)) {
                 val time = nowTime
                 val user = UserData.users.getOrDefault(sender.id, SingleUser())
-                val oldWife = group[user.wifeId] ?: sender
+                val oldWife = group[user.wifeId] ?: bot.getMember(user.wifeId) ?: bot.getStranger(user.wifeId) ?: sender
                 val wife = random(sender, oldWife.id)
                 user.wifeId = wife.id
                 user.time = time
@@ -65,43 +68,41 @@ object WifeYouWant : KotlinPlugin(
         }
     }
 
-    private suspend fun genMemberReplacement(s: String, identity: String, sender: NormalMember, connect: String = "_") :MutableMap<String, SingleMessage> {
-        val prefix = identity + connect
-        val map : MutableMap<String,SingleMessage> = mutableMapOf(
-            "${prefix}at" to At(sender), "${prefix}namecard" to PlainText(sender.nameCardOrNick),
-            "${prefix}nick" to PlainText(sender.nick), "${prefix}qq" to PlainText(sender.id.toString())
-        )
-        val pic = "${prefix}pic"
-        if (s.contains("\$$pic")) {
-            try {
-                val conn = withContext(Dispatchers.IO) {
-                    URL(sender.avatarUrl).openConnection().also { it.connect() }
-                }
-                val res = withContext(Dispatchers.IO) {
-                    conn.getInputStream()
-                }.toExternalResource()
-                map[pic] = sender.group.uploadImage(res)
-                withContext(Dispatchers.IO) {
-                    res.close()
-                }
-            } catch(t: Throwable) {
-                map[pic] = PlainText("头像获取失败")
-                t.printStackTrace()
-            }
-        }
-        return map
+    private fun Bot.getMember(id: Long) : NormalMember?{
+        return groups.asSequence().flatMap { it.members.asSequence() }.firstOrNull { it.id == id }
     }
 
-    private suspend fun genRandomWifeMessage(s: String, sender: NormalMember, wife: NormalMember) : MessageChain {
-        val map = genMemberReplacement(s, "", sender, "")
-        map.putAll(genMemberReplacement(s, "wife", wife))
+    private fun genUserReplacement(
+        identity: String,
+        sender: User,
+        connect: String = "_"
+    ): MutableMap<String, SingleMessage> {
+        val prefix = identity + connect
+        return mutableMapOf(
+            "${prefix}at" to At(sender.id), "${prefix}namecard" to PlainText(sender.nameCardOrNick),
+            "${prefix}nick" to PlainText(sender.nick), "${prefix}qq" to PlainText(sender.id.toString()),
+            "${prefix}pic" to sender.prepareUploadAvatarImage()
+        )
+    }
+    private suspend fun genRandomWifeMessage(
+        s: String,
+        sender: NormalMember,
+        wife: User
+    ): MessageChain {
+        val map = genUserReplacement("", sender, "")
+        map.putAll(genUserReplacement("wife", wife))
         return s.replace(map)
     }
 
-    private suspend fun genChangeWifeMessage(s : String, sender: NormalMember, oldWife: NormalMember, wife: NormalMember) : MessageChain {
-        val map = genMemberReplacement(s, "", sender, "")
-        map.putAll(genMemberReplacement(s, "wife", wife))
-        map.putAll(genMemberReplacement(s, "old-wife", oldWife))
+    private suspend fun genChangeWifeMessage(
+        s: String,
+        sender: NormalMember,
+        oldWife: User,
+        wife: User
+    ): MessageChain {
+        val map = genUserReplacement("", sender, "")
+        map.putAll(genUserReplacement("wife", wife))
+        map.putAll(genUserReplacement("old_wife", oldWife))
         return s.replace(map)
     }
 
@@ -110,9 +111,9 @@ object WifeYouWant : KotlinPlugin(
      * @param sender 请求者
      * @param excludeId 排除群员qq (换老婆时需要)
      */
-    private suspend fun random(sender: NormalMember, excludeId: Long? = null) : NormalMember {
+    private suspend fun random(sender: NormalMember, excludeId: Long? = null): NormalMember {
         val group = sender.group
-        var members :List<NormalMember> = group.members.filter { it.id != group.bot.id && it.id != excludeId }
+        var members: List<NormalMember> = group.members.filter { it.id != group.bot.id && it.id != excludeId }
 
         if (PluginConfig.checkGender) {
             var gender = sender.queryProfile().sex
@@ -131,32 +132,8 @@ object WifeYouWant : KotlinPlugin(
             val existsWives = UserData.users.map { it.value.wifeId }
             members.filter { !existsWives.contains(it.id) }
         }
-        
+
         if (members.isEmpty()) return group.botAsMember
         return members.random()
     }
-}
-
-fun String.replace(replacements: Map<String, SingleMessage>) : MessageChain {
-    if (!this.contains("\$")) return PlainText(this).toMessageChain()
-    val keys = replacements.keys
-    val message = MessageChainBuilder()
-    val s = this.split("\$").toMutableList()
-    message.add(s[0])
-    s.removeAt(0)
-    s.forEach {
-        var text = it
-        var isOriginal = true
-        for (k in keys) {
-            if (text.startsWith(k)) {
-                text = text.substring(k.length)
-                replacements[k]?.let { single -> message.add(single) }
-                message.add(text)
-                isOriginal = false
-                break
-            }
-        }
-        if (isOriginal) message.add("\$$text")
-    }
-    return message.build()
 }

@@ -10,6 +10,14 @@ object PluginConfig : ReadOnlyPluginConfig("config") {
     @ValueDescription("启用本插件的群聊")
     val enableGroups by value(listOf<Long>())
 
+    @ValueName("active-member-only")
+    @ValueDescription("随机选择时仅包含最近活跃的成员")
+    val activeMemberOnly by value(false)
+
+    @ValueName("member-active-time")
+    @ValueDescription("群成员活跃状态有效期,单位秒")
+    val memberActiveTime by value(7 * 24 * 60 * 60)
+
     @ValueName("blacklist-only")
     @ValueDescription("开启后机器人会响应所有群的命令，在黑名单内的群除外")
     val blacklistOnly by value(false)

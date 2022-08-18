@@ -113,6 +113,11 @@ object WifeYouWant : KotlinPlugin(
         val group = sender.group
         var members: List<NormalMember> = group.members.filter { it.id != group.bot.id && it.id != excludeId }
 
+        if (PluginConfig.activeMemberOnly) {
+            val timeLim = System.currentTimeMillis() / 1000 - PluginConfig.memberActiveTime
+            members = members.filter { it.lastSpeakTimestamp >= timeLim }
+        }
+
         if (PluginConfig.checkGender) {
             var gender = sender.queryProfile().sex
             if (gender != UserProfile.Sex.UNKNOWN) {

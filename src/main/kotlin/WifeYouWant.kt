@@ -75,8 +75,10 @@ object WifeYouWant : KotlinPlugin(
     ): MutableMap<String, SingleMessage> {
         val prefix = identity + connect
         return mutableMapOf(
-            "${prefix}at" to At(sender.id), "${prefix}namecard" to PlainText(sender.nameCardOrNick),
-            "${prefix}nick" to PlainText(sender.nick), "${prefix}qq" to PlainText(sender.id.toString()),
+            "${prefix}at" to At(sender.id),
+            "${prefix}namecard" to PlainText(sender.nameCardOrNick),
+            "${prefix}nick" to PlainText(sender.nick),
+            "${prefix}qq" to PlainText(sender.id.toString()),
             "${prefix}pic" to sender.prepareUploadAvatarImage()
         )
     }

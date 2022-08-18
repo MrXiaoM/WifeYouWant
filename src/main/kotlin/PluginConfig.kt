@@ -32,14 +32,14 @@ object PluginConfig : ReadOnlyPluginConfig("config") {
                 "其中你的变量有 \$at \$pic \$namecard \$nick \$qq\n" +
                 "其中老婆的变量有 \$wife_at \$wife_pic \$wife_namecard \$wife_nick \$wife_qq"
     )
-    val messagesRandomWife by value(listOf("\$at 今天你的群友亲爱的是 \$wife_pic\n【\$wife_nick】(\$wife_qq)哒！"))
+    val messagesRandomWife by value(listOf("\$at 今天你的群友亲爱的是 \$wife_pic\n【\$wife_namecard】(\$wife_qq)哒！"))
 
     @ValueName("messages-change-wife")
     @ValueDescription(
         "「换老婆」的回复语句列表\n" +
                 "在抽老婆的变量基础上，旧老婆的变量有 \$old_wife_at \$old_wife_pic \$old_wife_namecard \$old_wife_nick \$old_wife_qq"
     )
-    val messagesChangeWife by value(listOf("\$at 今天你的群友亲爱的是 \$wife_pic\n【\$wife_nick】(\$wife_qq)哒！"))
+    val messagesChangeWife by value(listOf("\$at 今天你的群友亲爱的是 \$wife_pic\n【\$old_wife_namecard】(\$wife_qq)哒！"))
 
     @ValueName("check-gender")
     @ValueDescription(

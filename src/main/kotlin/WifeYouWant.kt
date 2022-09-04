@@ -75,8 +75,10 @@ object WifeYouWant : KotlinPlugin(
     ): MutableMap<String, SingleMessage> {
         val prefix = identity + connect
         return mutableMapOf(
-            "${prefix}at" to At(sender.id), "${prefix}namecard" to PlainText(sender.nameCardOrNick),
-            "${prefix}nick" to PlainText(sender.nick), "${prefix}qq" to PlainText(sender.id.toString()),
+            "${prefix}at" to At(sender.id),
+            "${prefix}namecard" to PlainText(sender.nameCardOrNick),
+            "${prefix}nick" to PlainText(sender.nick),
+            "${prefix}qq" to PlainText(sender.id.toString()),
             "${prefix}pic" to sender.prepareUploadAvatarImage()
         )
     }
@@ -110,6 +112,11 @@ object WifeYouWant : KotlinPlugin(
     private suspend fun random(sender: NormalMember, excludeId: Long? = null): NormalMember {
         val group = sender.group
         var members: List<NormalMember> = group.members.filter { it.id != group.bot.id && it.id != excludeId }
+
+        if (PluginConfig.activeMemberOnly) {
+            val timeLim = System.currentTimeMillis() / 1000 - PluginConfig.memberActiveTime
+            members = members.filter { it.lastSpeakTimestamp >= timeLim }
+        }
 
         if (PluginConfig.checkGender) {
             var gender = sender.queryProfile().sex

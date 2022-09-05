@@ -2,11 +2,16 @@ package top.mrxiaom
 
 import net.mamoe.mirai.Bot
 import net.mamoe.mirai.console.command.CommandManager.INSTANCE.register
+import net.mamoe.mirai.console.permission.Permission
+import net.mamoe.mirai.console.permission.PermissionId
+import net.mamoe.mirai.console.permission.PermissionService
+import net.mamoe.mirai.console.permission.PermissionService.Companion.testPermission
+import net.mamoe.mirai.console.permission.PermitteeId
+import net.mamoe.mirai.console.permission.PermitteeId.Companion.permitteeId
+import net.mamoe.mirai.console.plugin.id
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
-import net.mamoe.mirai.contact.NormalMember
-import net.mamoe.mirai.contact.User
-import net.mamoe.mirai.contact.nameCardOrNick
+import net.mamoe.mirai.contact.*
 import net.mamoe.mirai.data.UserProfile
 import net.mamoe.mirai.event.events.GroupMessageEvent
 import net.mamoe.mirai.event.globalEventChannel
@@ -26,10 +31,12 @@ object WifeYouWant : KotlinPlugin(
         info("""嘻嘻，一天换一个老婆""")
     }
 ) {
+    private lateinit var PERM_USE: Permission
     private val nowTime: String
         get() = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
     override fun onEnable() {
-        logger.info { "Plugin loaded" }
+        PERM_USE = PermissionService.INSTANCE.register(PermissionId(id, "use"), "使用抽老婆/换老婆命令")
+
         PluginConfig.reload()
         UserData.reload()
 
@@ -37,7 +44,7 @@ object WifeYouWant : KotlinPlugin(
         this.globalEventChannel().subscribeAlways<GroupMessageEvent> {
             if (PluginConfig.blacklistOnly) {
                 if (PluginConfig.blacklistGroups.contains(group.id)) return@subscribeAlways
-            } else if (!PluginConfig.enableGroups.contains(group.id)) return@subscribeAlways
+            } else if (!PluginConfig.enableGroups.contains(group.id) && !anyHasPerm(PERM_USE, group, sender)) return@subscribeAlways
             val sender = if (it.sender is NormalMember) it.sender as NormalMember else return@subscribeAlways
 
             if (PluginConfig.messagesRandomWife.isNotEmpty() && PluginConfig.keywordsRandomWife.contains(it.message.content)) {
@@ -62,6 +69,7 @@ object WifeYouWant : KotlinPlugin(
                 group.sendMessage(genChangeWifeMessage(s, sender, oldWife, wife))
             }
         }
+        logger.info { "Plugin loaded" }
     }
 
     private fun Bot.getMember(id: Long) : NormalMember?{
@@ -139,4 +147,15 @@ object WifeYouWant : KotlinPlugin(
         if (members.isEmpty()) return group.botAsMember
         return members.random()
     }
+}
+
+val Contact.permitteeIdOrNull: PermitteeId?
+    get() = when (this) {
+        is User -> this.permitteeId
+        is Group -> this.permitteeId
+        else -> null
+    }
+
+fun anyHasPerm(p: Permission, vararg users: Contact): Boolean = users.any {
+    p.testPermission(it.permitteeIdOrNull ?: return@any false)
 }

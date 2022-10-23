@@ -34,6 +34,14 @@ object PluginConfig : ReadOnlyPluginConfig("config") {
     @ValueDescription("「换老婆」的关键词列表")
     val keywordsChangeWife by value(listOf("换老婆"))
 
+    @ValueName("keywords-wife-list-group")
+    @ValueDescription("「群老婆列表」的关键词列表")
+    val keywordsWifeListGroup by value(listOf("群老婆列表"))
+
+    @ValueName("keywords-wife-list-all")
+    @ValueDescription("「老婆列表」的关键词列表")
+    val keywordsWifeListAll by value(listOf("老婆列表"))
+
     @ValueName("message-random-wife")
     @ValueDescription(
         "「抽老婆」的回复语句列表\n" +

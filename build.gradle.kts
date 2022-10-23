@@ -3,11 +3,11 @@ plugins {
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.serialization") version kotlinVersion
 
-    id("net.mamoe.mirai-console") version "2.11.1"
+    id("net.mamoe.mirai-console") version "2.12.3"
 }
 
 group = "top.mrxiaom"
-version = "0.1.2"
+version = "0.1.3"
 
 repositories {
     maven("https://maven.aliyun.com/repository/central")

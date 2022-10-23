@@ -32,33 +32,42 @@ object WifeYouWant : KotlinPlugin(
     }
 ) {
     private lateinit var PERM_USE: Permission
+    private lateinit var PERM_CHECK_GROUP: Permission
+    private lateinit var PERM_CHECK_ALL: Permission
     private val nowTime: String
         get() = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
     override fun onEnable() {
         PERM_USE = PermissionService.INSTANCE.register(PermissionId(id, "use"), "使用抽老婆/换老婆命令")
+        PERM_CHECK_GROUP = PermissionService.INSTANCE.register(PermissionId(id, "check.group"), "使用群老婆列表命令")
+        PERM_CHECK_GROUP = PermissionService.INSTANCE.register(PermissionId(id, "check.all"), "使用老婆列表命令")
 
         PluginConfig.reload()
         UserData.reload()
 
         PluginCommand.register()
-        this.globalEventChannel().subscribeAlways<GroupMessageEvent> {
+        this.globalEventChannel().subscribeAlways<GroupMessageEvent> { it ->
             if (PluginConfig.blacklistOnly) {
                 if (PluginConfig.blacklistGroups.contains(group.id)) return@subscribeAlways
-            } else if (!PluginConfig.enableGroups.contains(group.id) && !anyHasPerm(PERM_USE, group, sender)) return@subscribeAlways
+            } else if (!PluginConfig.enableGroups.contains(group.id) && !anyHasPerm(
+                    PERM_USE,
+                    group,
+                    sender
+                )
+            ) return@subscribeAlways
             val sender = if (it.sender is NormalMember) it.sender as NormalMember else return@subscribeAlways
+            val time = nowTime
 
             if (PluginConfig.messagesRandomWife.isNotEmpty() && PluginConfig.keywordsRandomWife.contains(it.message.content)) {
-                val time = nowTime
                 val user = UserData.users.getOrDefault(sender.id, SingleUser())
                 if (user.time != time) user.wifeId = random(sender).id
-                val wife: User = group[user.wifeId] ?: bot.getMember(user.wifeId) ?: bot.getStranger(user.wifeId) ?: random(sender)
+                val wife: User =
+                    group[user.wifeId] ?: bot.getMember(user.wifeId) ?: bot.getStranger(user.wifeId) ?: random(sender)
                 user.wifeId = wife.id
                 user.time = time
                 UserData.users[sender.id] = user
                 val s = PluginConfig.messagesRandomWife.random()
                 group.sendMessage(genRandomWifeMessage(s, sender, wife))
             } else if (PluginConfig.messagesChangeWife.isNotEmpty() && PluginConfig.keywordsChangeWife.contains(it.message.content)) {
-                val time = nowTime
                 val user = UserData.users.getOrDefault(sender.id, SingleUser())
                 val oldWife = group[user.wifeId] ?: bot.getMember(user.wifeId) ?: bot.getStranger(user.wifeId) ?: sender
                 val wife = random(sender, oldWife.id)
@@ -67,7 +76,45 @@ object WifeYouWant : KotlinPlugin(
                 UserData.users[sender.id] = user
                 val s = PluginConfig.messagesChangeWife.random()
                 group.sendMessage(genChangeWifeMessage(s, sender, oldWife, wife))
+            } else if (PluginConfig.keywordsWifeListAll.contains(it.message.content)) {
+                var list = UserData.users.filter { it.value.time == time }.map { entry ->
+                    Pair(entry.key, entry.value.wifeId)
+                }
+                // 去重
+                list = list.filter { one ->
+                    list.all { two ->
+                        two.first != one.second
+                    }
+                }
+                group.sendMessage(buildForwardMessage {
+                    add(bot, PlainText(list.joinToString("\n") { couple ->
+                        val first = couple.first.toString() + " " + (group[couple.first]?.nameCardOrNick ?: "")
+                        val second = couple.second.toString() + " " + (group[couple.second]?.nameCardOrNick ?: "")
+                        "$first <--> $second"
+                    }))
+                })
+            } else if (PluginConfig.keywordsWifeListGroup.contains(it.message.content)) {
+                var list = UserData.users.filter { it.value.time == time }.map { entry ->
+                    Pair(entry.key, entry.value.wifeId)
+                }
+                list = list.filter {
+                    group.contains(it.first) && group.contains(it.second)
+                }
+                // 去重
+                list = list.filter { one ->
+                    list.all { two ->
+                        two.first != one.second
+                    }
+                }
+                group.sendMessage(buildForwardMessage {
+                    add(bot, PlainText(list.joinToString("\n") { couple ->
+                        val first = couple.first.toString() + " " + (group[couple.first]?.nameCardOrNick ?: "")
+                        val second = couple.second.toString() + " " + (group[couple.second]?.nameCardOrNick ?: "")
+                        "$first <--> $second"
+                    }))
+                })
             }
+
         }
         logger.info { "Plugin loaded" }
     }

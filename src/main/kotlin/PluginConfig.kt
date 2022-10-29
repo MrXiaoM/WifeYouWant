@@ -42,6 +42,10 @@ object PluginConfig : ReadOnlyPluginConfig("config") {
     @ValueDescription("「老婆列表」的关键词列表")
     val keywordsWifeListAll by value(listOf("老婆列表"))
 
+    @ValueName("wife-list-font")
+    @ValueDescription("老婆列表图片字体")
+    val wifeListFont by value("宋体")
+
     @ValueName("message-random-wife")
     @ValueDescription(
         "「抽老婆」的回复语句列表\n" +

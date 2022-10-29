@@ -46,7 +46,7 @@ object WifeYouWant : KotlinPlugin(
     private lateinit var PERM_USE: Permission
     private lateinit var PERM_CHECK_GROUP: Permission
     private lateinit var PERM_CHECK_ALL: Permission
-    private val nowTime: String
+    val nowTime: String
         get() = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
     override fun onEnable() {
         PERM_USE = PermissionService.INSTANCE.register(PermissionId(id, "use"), "使用抽老婆/换老婆命令")
@@ -70,7 +70,7 @@ object WifeYouWant : KotlinPlugin(
             val time = nowTime
 
             if (PluginConfig.messagesRandomWife.isNotEmpty() && PluginConfig.keywordsRandomWife.contains(it.message.content)) {
-                val user = UserData.users.getOrDefault(sender.id, SingleUser())
+                val user = UserData[sender.id] ?: SingleUser()
                 if (user.time != time) user.wifeId = random(sender).id
                 val wife: User =
                     group[user.wifeId] ?: bot.getMember(user.wifeId) ?: bot.getStranger(user.wifeId) ?: random(sender)
@@ -80,7 +80,7 @@ object WifeYouWant : KotlinPlugin(
                 val s = PluginConfig.messagesRandomWife.random()
                 group.sendMessage(genRandomWifeMessage(s, sender, wife))
             } else if (PluginConfig.messagesChangeWife.isNotEmpty() && PluginConfig.keywordsChangeWife.contains(it.message.content)) {
-                val user = UserData.users.getOrDefault(sender.id, SingleUser())
+                val user = UserData[sender.id] ?: SingleUser()
                 val oldWife = group[user.wifeId] ?: bot.getMember(user.wifeId) ?: bot.getStranger(user.wifeId) ?: sender
                 val wife = random(sender, oldWife.id)
                 user.wifeId = wife.id
@@ -224,8 +224,12 @@ object WifeYouWant : KotlinPlugin(
         }
 
         if (PluginConfig.checkNTR) {
-            val existsWives = UserData.users.map { it.value.wifeId }
-            members.filter { !existsWives.contains(it.id) }
+            val time = nowTime
+            val existsWives = mutableSetOf<Long>().also{ set ->
+                set.addAll(UserData.users.keys)
+                set.addAll(UserData.users.values.filter { time == nowTime }.map { it.wifeId })
+            }
+            members = members.filter { !existsWives.contains(it.id) }
         }
 
         if (members.isEmpty()) return group.botAsMember

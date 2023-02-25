@@ -58,6 +58,11 @@ object WifeYouWant : KotlinPlugin(
 
         PluginCommand.register()
         this.globalEventChannel().subscribeAlways<GroupMessageEvent> { it ->
+            if (PluginConfig.enableBots.isNotEmpty()) PluginConfig.enableBots.apply {
+                if ((!contains("${bot.id}:*") && !contains("${bot.id}:${group.id}")) || contains("${bot.id}:-${group.id}")) {
+                    return@subscribeAlways
+                }
+            }
             if (PluginConfig.blacklistOnly) {
                 if (PluginConfig.blacklistGroups.contains(group.id)) return@subscribeAlways
             } else if (!PluginConfig.enableGroups.contains(group.id) && !anyHasPerm(

@@ -7,8 +7,29 @@ import net.mamoe.mirai.console.data.value
 
 object PluginConfig : ReadOnlyPluginConfig("config") {
     @ValueName("enable-groups")
-    @ValueDescription("启用本插件的群聊")
+    @ValueDescription("""
+        启用本插件的群聊。填写规则如下
+        enable-groups:
+        - 群号1
+        - 群号2
+        - 以此类推
+    """)
     val enableGroups by value(listOf<Long>())
+
+    @ValueName("enable-bots")
+    @ValueDescription("""
+        启用本插件的机器人。如果你只登录了1个机器人，那么不需要去管这个配置。
+        本配置针对登录了多机器人的 mirai 使用，【留空默认为所有机器人可用】。
+        填写规则如下。除了这个配置以外，权限或者 enable-groups 依然是要单独去配置的。
+        enable-bots:
+        # 允许机器人 12345 在所有群使用该插件
+        - '12345:*'
+        # 允许机器人 12345 在群 114514 使用该插件
+        - '12345:114514'
+        # 不允许机器人 12345 在群 114514 使用该插件
+        - '12345:-114514'
+    """)
+    val enableBots by value(listOf<String>())
 
     @ValueName("active-member-only")
     @ValueDescription("随机选择时仅包含最近活跃的成员")

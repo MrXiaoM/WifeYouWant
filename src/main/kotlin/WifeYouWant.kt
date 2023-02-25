@@ -203,7 +203,7 @@ object WifeYouWant : KotlinPlugin(
      */
     private suspend fun random(sender: NormalMember, excludeId: Long? = null): NormalMember {
         val group = sender.group
-        var members: List<NormalMember> = group.members.filter { it.id != group.bot.id && it.id != excludeId }
+        var members: List<NormalMember> = group.members.filter { it.id != excludeId }
 
         if (PluginConfig.activeMemberOnly) {
             val timeLim = System.currentTimeMillis() / 1000 - PluginConfig.memberActiveTime
@@ -220,7 +220,9 @@ object WifeYouWant : KotlinPlugin(
         }
 
         if (!PluginConfig.checkSelf) {
-            members = members.filter { it.id != sender.id }
+            members = members.toMutableList().also {
+                it.add(sender.group.botAsMember)
+            }
         }
 
         if (PluginConfig.checkNTR) {

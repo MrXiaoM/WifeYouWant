@@ -51,7 +51,7 @@ object WifeYouWant : KotlinPlugin(
     override fun onEnable() {
         PERM_USE = PermissionService.INSTANCE.register(PermissionId(id, "use"), "使用抽老婆/换老婆命令")
         PERM_CHECK_GROUP = PermissionService.INSTANCE.register(PermissionId(id, "check.group"), "使用群老婆列表命令")
-        PERM_CHECK_GROUP = PermissionService.INSTANCE.register(PermissionId(id, "check.all"), "使用老婆列表命令")
+        PERM_CHECK_ALL = PermissionService.INSTANCE.register(PermissionId(id, "check.all"), "使用老婆列表命令")
 
         PluginConfig.reload()
         UserData.reload()

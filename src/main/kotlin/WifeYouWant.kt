@@ -215,11 +215,13 @@ object WifeYouWant : KotlinPlugin(
             members = members.filter { it.lastSpeakTimestamp >= timeLim }
         }
 
-        if (PluginConfig.checkGender) {
+        if (PluginConfig.checkGender || PluginConfig.checkGenderSame) {
             var gender = sender.queryProfile().sex
             if (gender != UserProfile.Sex.UNKNOWN) {
-                if (gender == UserProfile.Sex.MALE) gender = UserProfile.Sex.FEMALE
-                else if (gender == UserProfile.Sex.FEMALE) gender = UserProfile.Sex.MALE
+                if (!PluginConfig.checkGenderSame) {
+                    if (gender == UserProfile.Sex.MALE) gender = UserProfile.Sex.FEMALE
+                    else if (gender == UserProfile.Sex.FEMALE) gender = UserProfile.Sex.MALE
+                }
                 members = members.filter { it.queryProfile().sex == gender }
             }
         }

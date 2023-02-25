@@ -83,13 +83,20 @@ object PluginConfig : ReadOnlyPluginConfig("config") {
     val messagesChangeWife by value(listOf("\$at 今天你的群友亲爱的是 \$wife_pic\n【\$wife_namecard】(\$wife_qq)哒！"))
 
     @ValueName("check-gender")
-    @ValueDescription(
-        "在抽老婆时是否检查性别 (避免大量请求群员资料导致卡顿，尽量不要开启)\n" +
-                "开启后只抽性别与用户相反的群友\n" +
-                "当群友不公开性别时，该选项失效\n" +
-                "开启本选项会在抽老婆时忽略掉所有不公开性别的群友"
-    )
+    @ValueDescription("""
+        在抽老婆时是否检查性别 (避免大量请求群员资料导致卡顿，尽量不要开启)
+        开启后只抽性别与用户相反的群友
+        当群友不公开性别时，该选项失效
+        开启本选项会在抽老婆时忽略掉所有不公开性别的群友
+        """)
     val checkGender by value(false)
+
+    @ValueName("check-gender-same")
+    @ValueDescription("""
+        同 check-gender，与 check-gender 冲突，两者都开启时，check-gender 失效，该选项生效。
+        开启这个选项后，只能抽到性别与用户相同的群友
+    """)
+    val checkGenderSame by value(false)
 
     @ValueName("check-self")
     @ValueDescription("在抽老婆时是否不允许抽到自己")

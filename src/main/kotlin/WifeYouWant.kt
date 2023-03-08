@@ -37,7 +37,7 @@ object WifeYouWant : KotlinPlugin(
     JvmPluginDescription(
         id = "top.mrxiaom.wifeyouwant",
         name = "抽老婆",
-        version = "0.1.0",
+        version = "0.1.6",
     ) {
         author("MrXiaoM")
         info("""嘻嘻，一天换一个老婆""")

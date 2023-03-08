@@ -46,6 +46,44 @@ object WifeYouWant : KotlinPlugin(
     private lateinit var PERM_USE: Permission
     private lateinit var PERM_CHECK_GROUP: Permission
     private lateinit var PERM_CHECK_ALL: Permission
+    val cooldownMap = mutableMapOf<Long, MutableMap<Long, MutableMap<Long, Long>>>()
+
+    fun getCooldown(member: NormalMember): Long? {
+        if (PluginConfig.cooldown <= 0) return null
+        val botId = if (PluginConfig.cooldownAllBots) -1 else member.group.bot.id
+        val groupId = if (PluginConfig.cooldownAllGroups) -1 else member.group.id
+        val memberId = if (PluginConfig.cooldownAllMembers) -1 else member.id
+        val groups = (cooldownMap[botId] ?: kotlin.run {
+            mutableMapOf<Long, MutableMap<Long, Long>>().also {
+                cooldownMap[botId] = it
+            }
+        })
+        val members = groups[groupId] ?: kotlin.run {
+            mutableMapOf<Long, Long>().also {
+                groups[groupId] = it
+                cooldownMap[botId] = groups
+            }
+        }
+        return members[memberId]
+    }
+    fun setCooldown(member: NormalMember) {
+        if (PluginConfig.cooldown <= 0) return
+        val botId = if (PluginConfig.cooldownAllBots) -1 else member.group.bot.id
+        val groupId = if (PluginConfig.cooldownAllGroups) -1 else member.group.id
+        val memberId = if (PluginConfig.cooldownAllMembers) -1 else member.id
+        val groups = (cooldownMap[botId] ?: kotlin.run {
+            mutableMapOf<Long, MutableMap<Long, Long>>().also {
+                cooldownMap[botId] = it
+            }
+        })
+        val members = groups[groupId] ?: kotlin.run {
+            mutableMapOf<Long, Long>().also {
+                groups[groupId] = it
+                cooldownMap[botId] = groups
+            }
+        }
+        members[memberId] = System.currentTimeMillis() + (PluginConfig.cooldown * 1000L)
+    }
     val nowTime: String
         get() = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
     override fun onEnable() {

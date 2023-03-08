@@ -10,6 +10,6 @@ group = "top.mrxiaom"
 version = "0.1.5"
 
 repositories {
-    maven("https://maven.aliyun.com/repository/central")
+    maven("https://repo.huaweicloud.com/repository/maven")
     mavenCentral()
 }

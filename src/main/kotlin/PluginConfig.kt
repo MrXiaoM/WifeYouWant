@@ -47,6 +47,10 @@ object PluginConfig : ReadOnlyPluginConfig("config") {
     @ValueDescription("冷却中消息，\$cooldown 代表剩余秒数")
     val cooldownMessage by value("\$at 正在冷却中 (\$cooldown秒)")
 
+    @ValueName("recall-time")
+    @ValueDescription("撤回消息时间，单位为秒，取值在 [1,115] 内有效，超出访问视为禁用该功能")
+    val recallTime by value(0)
+
     @ValueName("active-member-only")
     @ValueDescription("随机选择时仅包含最近活跃的成员")
     val activeMemberOnly by value(false)

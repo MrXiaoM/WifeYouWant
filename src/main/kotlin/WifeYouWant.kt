@@ -46,6 +46,7 @@ object WifeYouWant : KotlinPlugin(
     private lateinit var PERM_USE: Permission
     private lateinit var PERM_CHECK_GROUP: Permission
     private lateinit var PERM_CHECK_ALL: Permission
+    val recallTimeRange = 1..115
     val cooldownMap = mutableMapOf<Long, MutableMap<Long, MutableMap<Long, Long>>>()
 
     fun getCooldown(member: NormalMember): Long? {
@@ -129,8 +130,12 @@ object WifeYouWant : KotlinPlugin(
                 user.time = time
                 UserData.users[sender.id] = user
                 val s = PluginConfig.messagesRandomWife.random()
-                group.sendMessage(genRandomWifeMessage(s, sender, wife))
+                val recallTime = PluginConfig.recallTime
+                val receipt = group.sendMessage(genRandomWifeMessage(s, sender, wife))
                 setCooldown(sender)
+                if (recallTimeRange.contains(recallTime)) {
+                    receipt.recallIn(recallTime * 1000L)
+                }
                 return@subscribeAlways
             }
             if (PluginConfig.messagesChangeWife.isNotEmpty() && PluginConfig.keywordsChangeWife.contains(it.message.content)) {
@@ -148,8 +153,12 @@ object WifeYouWant : KotlinPlugin(
                 user.time = time
                 UserData.users[sender.id] = user
                 val s = PluginConfig.messagesChangeWife.random()
-                group.sendMessage(genChangeWifeMessage(s, sender, oldWife, wife))
+                val recallTime = PluginConfig.recallTime
+                val receipt = group.sendMessage(genChangeWifeMessage(s, sender, oldWife, wife))
                 setCooldown(sender)
+                if (recallTimeRange.contains(recallTime)) {
+                    receipt.recallIn(recallTime * 1000L)
+                }
                 return@subscribeAlways
             }
             if (PluginConfig.keywordsWifeListAll.contains(it.message.content)) {

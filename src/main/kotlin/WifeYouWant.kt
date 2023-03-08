@@ -131,7 +131,9 @@ object WifeYouWant : KotlinPlugin(
                 val s = PluginConfig.messagesRandomWife.random()
                 group.sendMessage(genRandomWifeMessage(s, sender, wife))
                 setCooldown(sender)
-            } else if (PluginConfig.messagesChangeWife.isNotEmpty() && PluginConfig.keywordsChangeWife.contains(it.message.content)) {
+                return@subscribeAlways
+            }
+            if (PluginConfig.messagesChangeWife.isNotEmpty() && PluginConfig.keywordsChangeWife.contains(it.message.content)) {
                 val cooldown = getCooldown(sender)
                 if (cooldown != null && now < cooldown) {
                     val lastTime = (cooldown - now).toInt().toString().toPlainText()
@@ -148,7 +150,9 @@ object WifeYouWant : KotlinPlugin(
                 val s = PluginConfig.messagesChangeWife.random()
                 group.sendMessage(genChangeWifeMessage(s, sender, oldWife, wife))
                 setCooldown(sender)
-            } else if (PluginConfig.keywordsWifeListAll.contains(it.message.content)) {
+                return@subscribeAlways
+            }
+            if (PluginConfig.keywordsWifeListAll.contains(it.message.content)) {
                 var list = UserData.users.filter { it.value.time == time }.map { entry ->
                     Pair(entry.key, entry.value.wifeId)
                 }
@@ -164,8 +168,9 @@ object WifeYouWant : KotlinPlugin(
                     "$first <--> $second"
                 }
                 group.sendForwardOrPlain(msg)
-
-            } else if (PluginConfig.keywordsWifeListGroup.contains(it.message.content)) {
+                return@subscribeAlways
+            }
+            if (PluginConfig.keywordsWifeListGroup.contains(it.message.content)) {
                 var list = UserData.users.filter { it.value.time == time }.map { entry ->
                     Pair(entry.key, entry.value.wifeId)
                 }
@@ -184,6 +189,7 @@ object WifeYouWant : KotlinPlugin(
                     "$first <--> $second"
                 }
                 group.sendForwardOrPlain(msg)
+                return@subscribeAlways
             }
         }
         logger.info { "Plugin loaded" }

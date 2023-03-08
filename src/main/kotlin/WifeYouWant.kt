@@ -111,8 +111,16 @@ object WifeYouWant : KotlinPlugin(
             ) return@subscribeAlways
             val sender = if (it.sender is NormalMember) it.sender as NormalMember else return@subscribeAlways
             val time = nowTime
+            val now = System.currentTimeMillis()
 
             if (PluginConfig.messagesRandomWife.isNotEmpty() && PluginConfig.keywordsRandomWife.contains(it.message.content)) {
+                val cooldown = getCooldown(sender)
+                if (cooldown != null && now < cooldown) {
+                    val lastTime = (cooldown - now).toInt().toString().toPlainText()
+                    val replacement = genUserReplacement("", sender, "").plus("cooldown" to lastTime)
+                    group.sendMessage(PluginConfig.cooldownMessage.replace(replacement))
+                    return@subscribeAlways
+                }
                 val user = UserData[sender.id] ?: SingleUser()
                 if (user.time != time) user.wifeId = random(sender).id
                 val wife: User =
@@ -122,7 +130,15 @@ object WifeYouWant : KotlinPlugin(
                 UserData.users[sender.id] = user
                 val s = PluginConfig.messagesRandomWife.random()
                 group.sendMessage(genRandomWifeMessage(s, sender, wife))
+                setCooldown(sender)
             } else if (PluginConfig.messagesChangeWife.isNotEmpty() && PluginConfig.keywordsChangeWife.contains(it.message.content)) {
+                val cooldown = getCooldown(sender)
+                if (cooldown != null && now < cooldown) {
+                    val lastTime = (cooldown - now).toInt().toString().toPlainText()
+                    val replacement = genUserReplacement("", sender, "").plus("cooldown" to lastTime)
+                    group.sendMessage(PluginConfig.cooldownMessage.replace(replacement))
+                    return@subscribeAlways
+                }
                 val user = UserData[sender.id] ?: SingleUser()
                 val oldWife = group[user.wifeId] ?: bot.getMember(user.wifeId) ?: bot.getStranger(user.wifeId) ?: sender
                 val wife = random(sender, oldWife.id)
@@ -131,6 +147,7 @@ object WifeYouWant : KotlinPlugin(
                 UserData.users[sender.id] = user
                 val s = PluginConfig.messagesChangeWife.random()
                 group.sendMessage(genChangeWifeMessage(s, sender, oldWife, wife))
+                setCooldown(sender)
             } else if (PluginConfig.keywordsWifeListAll.contains(it.message.content)) {
                 var list = UserData.users.filter { it.value.time == time }.map { entry ->
                     Pair(entry.key, entry.value.wifeId)

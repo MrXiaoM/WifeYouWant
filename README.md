@@ -45,3 +45,7 @@
 ```
 ./gradlew buildPlugin buildPluginLegacy
 ```
+
+## 捐助
+
+前往 [爱发电](https://afdian.net/a/mrxiaom) 捐助我。

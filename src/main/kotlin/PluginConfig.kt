@@ -44,8 +44,8 @@ object PluginConfig : ReadOnlyPluginConfig("config") {
     @ValueDescription("是否所有群员共用一个冷却时间")
     val cooldownAllMembers by value(true)
     @ValueName("cooldown-message")
-    @ValueDescription("冷却中消息，\$cooldown 代表剩余秒数")
-    val cooldownMessage by value("\$at 正在冷却中 (\$cooldown秒)")
+    @ValueDescription("冷却中消息，\$cooldown 代表剩余毫秒数")
+    val cooldownMessage by value("\$at 正在冷却中 (\$cooldown毫秒)")
 
     @ValueName("recall-time")
     @ValueDescription("撤回消息时间，单位为秒，取值在 [1,115] 内有效，超出访问视为禁用该功能")
